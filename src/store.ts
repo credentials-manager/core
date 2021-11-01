@@ -19,15 +19,19 @@ export class Store {
 		for (const tmpStore of tmpStores) {
 			const store = new Store(tmpStore.name, tmpStore.id);
 
-			const file = readFileSync(`${Store.STORE_PATH}/${store.id}.json`, "utf8");
-
-			const credentials: Credential[] = JSON.parse(file);
-			store.credentials = credentials;
+			store.loadCredentials();
 
 			stores.push(store);
 		}
 
 		return stores;
+	}
+
+	private loadCredentials() {
+		const file = readFileSync(`${Store.STORE_PATH}/${this.id}.json`, "utf8");
+
+		const credentials: Credential[] = JSON.parse(file);
+		this.credentials = credentials;
 	}
 
 	public static get(id: string) {
