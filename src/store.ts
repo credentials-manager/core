@@ -44,6 +44,13 @@ export class Store {
 		}
 	}
 
+	public toJSON() {
+		return {
+			name: this.name,
+			id: this.id,
+		};
+	}
+
 	public addCredential(credential: Credential) {
 		credential.id = uuidv4();
 
@@ -61,7 +68,13 @@ export class Store {
 		//this.id = uuidv4();
 		stores.push(this);
 
-		writeFileSync(Store.META_PATH, JSON.stringify(stores));
+		const storesJSON = [];
+
+		for (const store of stores) {
+			storesJSON.push(store.toJSON());
+		}
+
+		writeFileSync(Store.META_PATH, JSON.stringify(storesJSON));
 
 		writeFileSync(
 			`${Store.STORE_PATH}/${this.id}.json`,
