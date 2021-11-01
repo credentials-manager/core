@@ -65,19 +65,3 @@ export class Store {
 		);
 	}
 }
-
-const store: Store | undefined = Store.get(
-	"4ea38fc8-8840-418b-8fd5-2434acbb9ee0"
-);
-
-console.log(store);
-
-store!.addCredential({
-	address: "1.2.3.4",
-	password: "SecretPassword",
-	port: 123,
-	protocol: "ssh",
-	username: "root",
-});
-
-console.log(store);
