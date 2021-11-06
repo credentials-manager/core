@@ -62,6 +62,17 @@ export class Store {
 		);
 	}
 
+	public deleteCredential(id: string): void {
+		this.credentials = this.credentials.filter(
+			(credential) => credential.id != id
+		);
+
+		writeFileSync(
+			`${Store.STORE_PATH}/${this.id}.json`,
+			JSON.stringify(this.credentials)
+		);
+	}
+
 	public create() {
 		const stores: Store[] = Store.getAll();
 
