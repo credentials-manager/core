@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
 import { Config } from "./config";
 import { Credential } from "./credential";
 import { v4 as uuidv4 } from "uuid";
@@ -12,6 +12,10 @@ export class Store {
 	public constructor(public name: string, public id: string = uuidv4()) {}
 
 	public static getAll(): Store[] {
+		if (!existsSync(Store.META_PATH)) {
+			return [];
+		}
+
 		const file = readFileSync(Store.META_PATH, "utf8");
 		const tmpStores = JSON.parse(file);
 		const stores: Store[] = [];
@@ -83,6 +87,10 @@ export class Store {
 
 		for (const store of stores) {
 			storesJSON.push(store.toJSON());
+		}
+
+		if (!existsSync(Store.STORE_PATH)) {
+			mkdirSync(Store.STORE_PATH);
 		}
 
 		writeFileSync(Store.META_PATH, JSON.stringify(storesJSON));
