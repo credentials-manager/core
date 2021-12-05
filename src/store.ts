@@ -2,12 +2,21 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
 import { Config } from "./config";
 import { Credential } from "./credential";
 import { v4 as uuidv4 } from "uuid";
+import { encrypt } from "./encrypt";
+
+interface EncryptInfo {
+	iv: string;
+	salt: string;
+	password: string;
+}
 
 export class Store {
 	public static readonly META_PATH: string = Config.PATH + "/stores.json";
 	public static readonly STORE_PATH: string = Config.PATH + "/stores";
 
 	public credentials: Credential[] = [];
+
+	private encrypt?: EncryptInfo;
 
 	public constructor(public name: string, public id: string = uuidv4()) {}
 
@@ -77,8 +86,25 @@ export class Store {
 		);
 	}
 
-	public create() {
+	public create(password?: string) {
 		const stores: Store[] = Store.getAll();
+
+		if (password) {
+			const encrypted = encrypt(JSON.stringify(this.credentials), password);
+
+			this.encrypt = {
+				iv: encrypted.iv,
+				salt: encrypted.salt,
+				password: encrypted.password,
+			};
+
+			writeFileSync(`${Store.STORE_PATH}/${this.id}`, encrypted.encrypted);
+		} else {
+			writeFileSync(
+				`${Store.STORE_PATH}/${this.id}.json`,
+				JSON.stringify(this.credentials)
+			);
+		}
 
 		//this.id = uuidv4();
 		stores.push(this);
@@ -94,10 +120,5 @@ export class Store {
 		}
 
 		writeFileSync(Store.META_PATH, JSON.stringify(storesJSON));
-
-		writeFileSync(
-			`${Store.STORE_PATH}/${this.id}.json`,
-			JSON.stringify(this.credentials)
-		);
 	}
 }
