@@ -57,11 +57,38 @@ export class Store {
 		}
 	}
 
-	public toJSON() {
-		return {
-			name: this.name,
-			id: this.id,
-		};
+	private toJSON() {
+		if (this.encrypt) {
+			return {
+				id: this.id,
+				name: this.name,
+				encrypt: this.encrypt,
+			};
+		} else {
+			return {
+				id: this.id,
+				name: this.name,
+			};
+		}
+	}
+
+	private update() {
+		if (password) {
+			const encrypted = encrypt(JSON.stringify(this.credentials), password);
+
+			this.encrypt = {
+				iv: encrypted.iv,
+				salt: encrypted.salt,
+				password: encrypted.password,
+			};
+
+			writeFileSync(`${Store.STORE_PATH}/${this.id}`, encrypted.encrypted);
+		} else {
+			writeFileSync(
+				`${Store.STORE_PATH}/${this.id}.json`,
+				JSON.stringify(this.credentials)
+			);
+		}
 	}
 
 	public addCredential(credential: Credential) {
@@ -88,23 +115,6 @@ export class Store {
 
 	public create(password?: string) {
 		const stores: Store[] = Store.getAll();
-
-		if (password) {
-			const encrypted = encrypt(JSON.stringify(this.credentials), password);
-
-			this.encrypt = {
-				iv: encrypted.iv,
-				salt: encrypted.salt,
-				password: encrypted.password,
-			};
-
-			writeFileSync(`${Store.STORE_PATH}/${this.id}`, encrypted.encrypted);
-		} else {
-			writeFileSync(
-				`${Store.STORE_PATH}/${this.id}.json`,
-				JSON.stringify(this.credentials)
-			);
-		}
 
 		//this.id = uuidv4();
 		stores.push(this);
