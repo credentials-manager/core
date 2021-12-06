@@ -18,6 +18,8 @@ export class Store {
 
 	private encrypt?: EncryptInfo;
 
+	private password?: string;
+
 	public constructor(public name: string, public id: string = uuidv4()) {}
 
 	public static getAll(): Store[] {
@@ -73,8 +75,11 @@ export class Store {
 	}
 
 	private update() {
-		if (password) {
-			const encrypted = encrypt(JSON.stringify(this.credentials), password);
+		if (this.password) {
+			const encrypted = encrypt(
+				JSON.stringify(this.credentials),
+				this.password
+			);
 
 			this.encrypt = {
 				iv: encrypted.iv,
@@ -114,6 +119,8 @@ export class Store {
 	}
 
 	public create(password?: string) {
+		this.password = password;
+
 		const stores: Store[] = Store.getAll();
 
 		//this.id = uuidv4();
@@ -128,6 +135,8 @@ export class Store {
 		if (!existsSync(Store.STORE_PATH)) {
 			mkdirSync(Store.STORE_PATH);
 		}
+
+		this.update();
 
 		writeFileSync(Store.META_PATH, JSON.stringify(storesJSON));
 	}
