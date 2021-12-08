@@ -122,7 +122,7 @@ export class Store {
 		);
 	}
 
-	public create(password?: string) {
+	public create(password?: string): boolean {
 		this.password = password;
 
 		const stores: Store[] = Store.getAll();
@@ -143,5 +143,7 @@ export class Store {
 		this.update();
 
 		writeFileSync(Store.META_PATH, JSON.stringify(storesJSON));
+
+		return true;
 	}
 }
