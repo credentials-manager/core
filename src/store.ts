@@ -42,6 +42,10 @@ export class Store {
 		return stores;
 	}
 
+	public get encrypted(): boolean {
+		return this.encrypt != undefined;
+	}
+
 	private loadCredentials() {
 		const file = readFileSync(`${Store.STORE_PATH}/${this.id}.json`, "utf8");
 
