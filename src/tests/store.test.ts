@@ -39,11 +39,12 @@ describe("create non encrypted store", () => {
 
 describe("create encrypted store", () => {
 	let store: Store;
+	const password = "secret_test_password";
 
 	test("create a store", () => {
 		store = new Store("test");
 
-		expect(store.create("secret")).toBeTruthy();
+		expect(store.create(password)).toBeTruthy();
 	});
 
 	test("check the file exist", () => {
@@ -52,5 +53,13 @@ describe("create encrypted store", () => {
 
 	test("check encrypted getter", () => {
 		expect(store.encrypted).toBeTruthy();
+	});
+
+	test("try to unlock store without password", () => {
+		expect(Store.get(store.id)).toThrowError();
+	});
+
+	test("try to unlock store with wrong password", () => {
+		expect(Store.get(store.id, "wrong_password")).toThrowError();
 	});
 });

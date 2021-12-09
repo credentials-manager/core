@@ -53,7 +53,7 @@ export class Store {
 		this.credentials = credentials;
 	}
 
-	public static get(id: string) {
+	public static get(id: string, password?: string): Store | undefined {
 		const stores: Store[] = Store.getAll();
 
 		for (const store of stores) {
