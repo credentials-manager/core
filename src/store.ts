@@ -28,16 +28,7 @@ export class Store {
 		}
 
 		const file = readFileSync(Store.META_PATH, "utf8");
-		const tmpStores = JSON.parse(file);
-		const stores: Store[] = [];
-
-		for (const tmpStore of tmpStores) {
-			const store = new Store(tmpStore.name, tmpStore.id);
-
-			store.loadCredentials();
-
-			stores.push(store);
-		}
+		const stores: Store[] = JSON.parse(file);
 
 		return stores;
 	}

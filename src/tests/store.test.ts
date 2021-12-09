@@ -3,7 +3,7 @@ import { existsSync } from "fs";
 import { Config } from "../config";
 import { Credential } from "../credential";
 
-describe("create non encrypted store", () => {
+describe("non encrypted store", () => {
 	let store: Store;
 
 	test("create a store", () => {
@@ -37,7 +37,7 @@ describe("create non encrypted store", () => {
 	});
 });
 
-describe("create encrypted store", () => {
+describe("encrypted store", () => {
 	let store: Store;
 	const password = "secret_test_password";
 
