@@ -100,7 +100,7 @@ export class Store {
 		}
 	}
 
-	public addCredential(credential: Credential) {
+	public addCredential(credential: Credential): Credential {
 		credential.id = uuidv4();
 
 		this.credentials.push(credential);
@@ -109,6 +109,8 @@ export class Store {
 			`${Store.STORE_PATH}/${this.id}.json`,
 			JSON.stringify(this.credentials)
 		);
+
+		return credential;
 	}
 
 	public deleteCredential(id: string): void {
