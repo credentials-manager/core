@@ -18,8 +18,20 @@ describe("non encrypted store", () => {
 		).toBeTruthy();
 	});
 
-	test("check encrypted getter", () => {
+	test("encrypted getter is false", () => {
 		expect(store.encrypted).toBeFalsy();
+	});
+
+	test("getAll contain created store", () => {
+		const stores: Store[] = Store.getAll();
+
+		expect(stores).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					id: store.id,
+				}),
+			])
+		);
 	});
 
 	test("add credential", () => {
@@ -51,15 +63,33 @@ describe("encrypted store", () => {
 		expect(existsSync(Config.PATH + "/stores/" + store.id)).toBeTruthy();
 	});
 
-	test("check encrypted getter", () => {
+	test("encrypted getter is true", () => {
 		expect(store.encrypted).toBeTruthy();
 	});
 
-	test("try to unlock store without password", () => {
-		expect(Store.get(store.id)).toThrowError();
+	test("try to unlock encrypted store without password", () => {
+		try {
+			Store.get(store.id);
+		} catch (e) {
+			if (e instanceof Error) expect(e.name).toBe("PASSWORD_REQUIRED");
+		}
 	});
 
-	test("try to unlock store with wrong password", () => {
-		expect(Store.get(store.id, "wrong_password")).toThrowError();
+	test("try to unlock encrypted store with wrong password", () => {
+		try {
+			Store.get(store.id, "wrong_password");
+		} catch (e) {
+			if (e instanceof Error) expect(e.name).toBe("WRONG_PASSWORD");
+		}
+	});
+});
+
+describe("others", () => {
+	test("get not exist store", () => {
+		try {
+			Store.get("NOT_EXIST_STORE");
+		} catch (e) {
+			if (e instanceof Error) expect(e.name).toBe("STORE_NOT_FOUND");
+		}
 	});
 });

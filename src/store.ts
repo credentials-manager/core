@@ -3,6 +3,7 @@ import { Config } from "./config";
 import { Credential } from "./credential";
 import { v4 as uuidv4 } from "uuid";
 import { encrypt } from "./encrypt";
+import { checkPassword } from "./password";
 
 interface EncryptInfo {
 	iv: string;
@@ -28,7 +29,18 @@ export class Store {
 		}
 
 		const file = readFileSync(Store.META_PATH, "utf8");
-		const stores: Store[] = JSON.parse(file);
+		const tmpStores: Store[] = JSON.parse(file);
+		const stores: Store[] = [];
+
+		for (const tmpStore of tmpStores) {
+			const store: Store = new Store(tmpStore.name, tmpStore.id);
+
+			if (tmpStore.encrypt) {
+				store.encrypt = tmpStore.encrypt;
+			}
+
+			stores.push(store);
+		}
 
 		return stores;
 	}
@@ -44,14 +56,42 @@ export class Store {
 		this.credentials = credentials;
 	}
 
-	public static get(id: string, password?: string): Store | undefined {
+	public static get(id: string, password?: string): Store {
 		const stores: Store[] = Store.getAll();
 
 		for (const store of stores) {
 			if (store.id == id) {
-				return store;
+				if (store.encrypt) {
+					if (!password) {
+						const error: Error = new Error("Password required");
+						error.name = "PASSWORD_REQUIRED";
+						throw error;
+					} else {
+						if (
+							checkPassword(
+								password,
+								store.encrypt.salt,
+								store.encrypt.password
+							)
+						) {
+							// decrypt here
+						} else {
+							const error: Error = new Error("Password incorrect");
+							error.name = "WRONG_PASSWORD";
+							throw error;
+						}
+					}
+				} else {
+					const returnStore: Store = new Store(store.name, store.id);
+					returnStore.loadCredentials();
+					return returnStore;
+				}
 			}
 		}
+
+		const error: Error = new Error("Store not found");
+		error.name = "STORE_NOT_FOUND";
+		throw error;
 	}
 
 	private toJSON() {
@@ -123,6 +163,8 @@ export class Store {
 		//this.id = uuidv4();
 		stores.push(this);
 
+		this.update();
+
 		const storesJSON = [];
 
 		for (const store of stores) {
@@ -132,8 +174,6 @@ export class Store {
 		if (!existsSync(Store.STORE_PATH)) {
 			mkdirSync(Store.STORE_PATH);
 		}
-
-		this.update();
 
 		writeFileSync(Store.META_PATH, JSON.stringify(storesJSON));
 
