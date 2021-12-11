@@ -2,13 +2,13 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
 import { Config } from "./config";
 import { Credential } from "./credential";
 import { v4 as uuidv4 } from "uuid";
-import { encrypt } from "./encrypt";
+import { encryptCredentials } from "./encrypt";
 import { checkPassword } from "./password";
+import { decryptCredentials } from "./decrypt";
 
 interface EncryptInfo {
 	iv: string;
 	salt: string;
-	password: string;
 }
 
 export class Store {
@@ -67,14 +67,19 @@ export class Store {
 						error.name = "PASSWORD_REQUIRED";
 						throw error;
 					} else {
-						if (
-							checkPassword(
-								password,
-								store.encrypt.salt,
-								store.encrypt.password
-							)
-						) {
-							// decrypt here
+						const file = readFileSync(
+							`${Store.STORE_PATH}/${store.id}`,
+							"utf8"
+						);
+
+						const credentials: Credential[] | null = decryptCredentials(
+							file,
+							password,
+							store.encrypt.salt,
+							store.encrypt.iv
+						);
+						if (credentials) {
+							store.credentials = credentials;
 						} else {
 							const error: Error = new Error("Password incorrect");
 							error.name = "WRONG_PASSWORD";
@@ -111,15 +116,11 @@ export class Store {
 
 	private update() {
 		if (this.password) {
-			const encrypted = encrypt(
-				JSON.stringify(this.credentials),
-				this.password
-			);
+			const encrypted = encryptCredentials(this.credentials, this.password);
 
 			this.encrypt = {
 				iv: encrypted.iv,
 				salt: encrypted.salt,
-				password: encrypted.password,
 			};
 
 			writeFileSync(`${Store.STORE_PATH}/${this.id}`, encrypted.encrypted);

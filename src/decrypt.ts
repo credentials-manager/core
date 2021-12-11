@@ -1,12 +1,13 @@
 import { scryptSync, createDecipheriv } from "crypto";
+import { Credential } from "./credential";
 import { Config } from "./config";
 
-export function decrypt(
+export function decryptCredentials(
 	data: string,
 	password: string,
 	salt: string,
 	iv: string
-): string {
+): Credential[] | null {
 	const encryptedText = Buffer.from(data, "hex");
 	const key = scryptSync(password, Buffer.from(salt, "hex"), Config.KEY_LENGTH);
 
@@ -19,5 +20,20 @@ export function decrypt(
 	let decrypted = decipher.update(encryptedText);
 	decrypted = Buffer.concat([decrypted, decipher.final()]);
 
-	return decrypted.toString();
+	const decryptedString = decrypted.toString();
+
+	if (isJSON(decryptedString)) {
+		return JSON.parse(decryptedString);
+	} else {
+		return null;
+	}
+}
+
+function isJSON(str: string): boolean {
+	try {
+		JSON.parse(str);
+	} catch (e) {
+		return false;
+	}
+	return true;
 }
